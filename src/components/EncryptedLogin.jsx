@@ -1,0 +1,111 @@
+import React, { useState, useEffect } from "react";
+import PUBLIC_KEY_PEM from "../publicKey";
+
+// --- Helpers para RSA / Base64
+function pemToArrayBuffer(pem) {
+  const b64 = pem.replace(/-----BEGIN PUBLIC KEY-----/, "")
+                 .replace(/-----END PUBLIC KEY-----/, "")
+                 .replace(/\s+/g, "");
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
+async function importPublicKey(pem) {
+  const keyBuf = pemToArrayBuffer(pem);
+  return window.crypto.subtle.importKey(
+    "spki",
+    keyBuf,
+    { name: "RSA-OAEP", hash: "SHA-512" },
+    false,
+    ["encrypt"]
+  );
+}
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
+
+function fechaMinutos() {
+  const now = new Date();
+  return now.toISOString().slice(0,16);
+}
+
+// --- Componente
+export default function EncryptedLogin({ apiUrl }) {
+  const [pubKey, setPubKey] = useState(null);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const key = await importPublicKey(PUBLIC_KEY_PEM);
+        setPubKey(key);
+      } catch (err) {
+        console.error(err);
+        setStatus("Error importando la clave pública");
+      }
+    })();
+  }, []);
+
+  async function encryptField(text) {
+    const textWithDate = `${text}_+_${fechaMinutos()}`;
+    const base64 = btoa(textWithDate);
+    const encoded = new TextEncoder().encode(base64);
+    const cipherBuffer = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, pubKey, encoded);
+    return arrayBufferToBase64(cipherBuffer);
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setStatus("");
+
+    if (!pubKey) return setStatus("Clave pública no cargada");
+    if (!username || !password) return setStatus("Completa usuario y contraseña");
+
+    try {
+      setStatus("Encriptando...");
+      const encUser = await encryptField(username);
+      const encPass = await encryptField(password);
+      setPassword("");
+
+      const body = JSON.stringify({ username: encUser, password: encPass });
+      setStatus("Enviando al servidor...");
+
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body
+      });
+
+      if (!res.ok) return setStatus(`Error ${res.status}: ${res.statusText}`);
+      const data = await res.json().catch(() => ({}));
+      setStatus(`Login exitoso${data?.token ? ", token recibido" : ""}`);
+    } catch (err) {
+      console.error(err);
+      setStatus("Error en el proceso de login");
+    }
+  }
+
+  return (
+    <div className="login-page">
+      <div className="login-box">
+        <h2>Acceso Seguro</h2>
+        <form onSubmit={handleSubmit}>
+          <label>Usuario</label>
+          <input value={username} onChange={e => setUsername(e.target.value)} />
+          <label>Contraseña</label>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
+          <button type="submit">Ingresar</button>
+        </form>
+        {status && <p className="status">{status}</p>}
+      </div>
+    </div>
+  );
+}
