@@ -1,5 +1,7 @@
+// src/components/offers/OffersGrid.jsx
 import React from "react";
 import ProductCard from "./ProductCard";
+import "../../styles/OffersGrid.css";
 
 const OffersGrid = ({ offers, favorites, onToggleFavorite, variant }) => {
   if (!offers || offers.length === 0) {
@@ -14,7 +16,9 @@ const OffersGrid = ({ offers, favorites, onToggleFavorite, variant }) => {
   return (
     <div
       className={
-        variant === "highlight" ? "offers-grid offers-grid-highlight" : "offers-grid"
+        variant === "highlight"
+          ? "offers-grid offers-grid-highlight"
+          : "offers-grid"
       }
     >
       {offers.map((offer) => (
@@ -30,3 +34,4 @@ const OffersGrid = ({ offers, favorites, onToggleFavorite, variant }) => {
 };
 
 export default OffersGrid;
+

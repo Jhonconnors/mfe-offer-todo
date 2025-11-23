@@ -1,7 +1,7 @@
 import { useState } from "react";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/common/Navbar";
 import OffersHome from "./pages/OffersHome";
-import EncryptedLogin from "./components/EncryptedLogin";
+import EncryptedLogin from "./components/auth/EncryptedLogin";
 
 export default function App() {
   const [showLogin, setShowLogin] = useState(false);

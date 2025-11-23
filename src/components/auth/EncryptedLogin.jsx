@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import PUBLIC_KEY_PEM from "../publicKey";
+import PUBLIC_KEY_PEM from "../../config/publicKey";
 
 // --- Helpers para RSA / Base64
 function pemToArrayBuffer(pem) {

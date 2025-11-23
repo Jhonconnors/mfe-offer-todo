@@ -1,0 +1,178 @@
+/* ------------------------------------
+   TARJETA DE PRODUCTO (ESTILO MEDIMARKET)
+-------------------------------------- */
+
+.product-card {
+  background: #ffffff;
+  display: flex;
+  gap: 18px;
+  padding: 18px;
+  border-radius: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+  position: relative;
+}
+
+.product-card:hover {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* ---------- IMAGE AREA ---------- */
+.product-card-image {
+  width: 110px;
+  height: 110px;
+  border-radius: 14px;
+  background: #f4f4f4;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-placeholder {
+  width: 80%;
+  height: 80%;
+  background: #e0e0e0;
+  border-radius: 8px;
+}
+
+/* ---------- BADGE DESCUENTO ---------- */
+.product-badge-discount {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: #ff4d4d;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* ---------- INFO ---------- */
+.product-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Empresa */
+.product-company {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 2px;
+}
+
+/* Nombre */
+.product-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
+/* Categoría */
+.product-category {
+  font-size: 13px;
+  color: #6d6d6d;
+  margin-bottom: 10px;
+}
+
+/* ---------- PRECIOS ---------- */
+.product-price-block {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.product-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #149e55;
+}
+
+.product-price-old {
+  font-size: 13px;
+  color: #b0b0b0;
+  text-decoration: line-through;
+}
+
+/* ---------- INFO EXTRA ---------- */
+.product-commune,
+.product-stock,
+.product-update {
+  font-size: 12px;
+  color: #7a7a7a;
+  margin-bottom: 2px;
+}
+
+/* ---------- BOTONES ---------- */
+.product-card-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.btn-fav {
+  flex: 1;
+  background: #f3f3f3;
+  border: 1px solid #dcdcdc;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-fav:hover {
+  background: #ececec;
+}
+
+.btn-fav.active {
+  background: #ffe5e8;
+  border-color: #ffb3bd;
+  color: #c6283d;
+}
+
+.btn-shop {
+  flex: 1;
+  text-align: center;
+  background: #ff7a00;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.btn-shop:hover {
+  background: #f26900;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+  .product-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .product-card-image {
+    width: 150px;
+    height: 150px;
+  }
+
+  .product-card-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+}
