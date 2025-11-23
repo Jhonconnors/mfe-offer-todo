@@ -8,11 +8,11 @@ export default function Navbar({ onLoginClick }) {
 
         {/* Logo / título */}
         <div className="navbar-logo">
-          <span className="navbar-logo-icon">🔐</span>
+          <span className="navbar-logo-icon">🛍️</span>
 
           <div>
-            <div className="navbar-title">Encrypted Login</div>
-            <div className="navbar-subtitle">React + RSA Encryption</div>
+            <div className="navbar-title">OfferTodo</div>
+            <div className="navbar-subtitle">Donde encuentras los mejores precios</div>
           </div>
         </div>
 
