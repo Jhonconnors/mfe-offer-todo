@@ -1,61 +1,77 @@
-// src/components/offers/ProductCard.jsx
 import React from "react";
 import "../../styles/ProductCard.css";
 
 const ProductCard = ({ offer, isFavorite, onToggleFavorite }) => {
+  // Extraemos SOLO los datos que existen en el contrato Swagger y el mapeo de OffersHome
   const {
-    name,
-    category,
-    companyName,
-    companyType,
-    commune,
-    price,
-    originalPrice,
-    discountPercentage,
-    stock,
-    lastUpdate,
-    url,
+    id,
+    name,          // Viene de 'nombre'
+    description,   // Viene de 'descripcion'
+    companyName,   // Asignado en el Frontend (Farmacia/Supermercado)
+    commune,       // Asignado en el Frontend
+    price,         // Viene de 'precioUnitario.valor'
+    image,         // Viene de 'imagen'
+    url,           // Viene de 'farmaciaUrl' o 'supermercadoUrl'
   } = offer;
+
+  // Formateador seguro para pesos chilenos
+  const formattedPrice = (value) => {
+    if (value === undefined || value === null) return "$0";
+    return value.toLocaleString("es-CL", { style: "currency", currency: "CLP" });
+  };
 
   return (
     <article className="product-card">
-      {/* Cuadro de imagen (placeholder por ahora) */}
+      
+      {/* 1. Imagen (URL Real del Backend) */}
       <div className="product-card-image">
-        {/* Cuando tengas la URL real, reemplazas el div por <img src={offer.imageUrl} .../> */}
-        <div className="image-placeholder" />
+        {image ? (
+          <img 
+            src={image} 
+            alt={name} 
+            loading="lazy"
+            style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+            onError={(e) => { e.target.style.display = 'none'; }} // Ocultar si falla
+          />
+        ) : (
+          <div className="image-placeholder" />
+        )}
       </div>
 
-      {/* Información principal */}
+      {/* 2. Información del Producto */}
       <div className="product-card-info">
-        {discountPercentage && (
-          <span className="product-badge-discount">-{discountPercentage}%</span>
+        
+        {/* Nombre de la tienda (Farmacia o Supermercado) */}
+        <p className="product-company">{companyName}</p>
+        
+        {/* Nombre del Producto */}
+        <h4 className="product-name" title={name}>{name}</h4>
+        
+        {/* Descripción (Opcional, solo si el backend la envía) */}
+        {description && (
+          <p className="product-description" style={{ fontSize: "0.85rem", color: "#666", margin: "5px 0" }}>
+            {description.length > 60 ? description.substring(0, 60) + "..." : description}
+          </p>
         )}
 
-        <p className="product-company">{companyName}</p>
-        <h4 className="product-name">{name}</h4>
-        <p className="product-category">{category}</p>
-
+        {/* Precio Único (El backend no envía precio oferta vs original, solo uno) */}
         <div className="product-price-block">
           <span className="product-price">
-            ${price.toLocaleString("es-CL")}
-          </span>
-          <span className="product-price-old">
-            ${originalPrice.toLocaleString("es-CL")}
+            {formattedPrice(price)}
           </span>
         </div>
 
+        {/* Ubicación */}
         <p className="product-commune">Comuna: {commune}</p>
-        <p className="product-stock">{stock || "Stock no informado"}</p>
-        <p className="product-update">Actualizado: {lastUpdate}</p>
 
-        {/* Botones tipo MediMarket */}
+        {/* 3. Botones de Acción */}
         <div className="product-card-buttons">
           <button
             type="button"
-            onClick={onToggleFavorite}
+            onClick={() => onToggleFavorite(id)}
             className={`btn-fav ${isFavorite ? "active" : ""}`}
           >
-            {isFavorite ? "Quitar favorito" : "Agregar a favoritos"}
+            {isFavorite ? "Quitar" : "Favorito"}
           </button>
 
           <a
