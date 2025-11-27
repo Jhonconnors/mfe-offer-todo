@@ -1,0 +1,65 @@
+/* === NAVBAR === */
+
+.navbar {
+    width: 100%;
+    background-color: #1c7ed6; /* azul moderno */
+    padding: 10px 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* Contenedor interno */
+.navbar-content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logo + texto */
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navbar-logo-icon {
+    width: 32px;
+    height: 32px;
+    background-color: #fff;
+    border-radius: 50%;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navbar-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.navbar-subtitle {
+    font-size: 11px;
+    color: #dceaff;
+    margin-top: -3px;
+}
+
+/* Botón ingresar */
+.navbar-button {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.navbar-button:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}

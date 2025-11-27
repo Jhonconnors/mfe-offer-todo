@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* (Opcional) estilos extra con Tailwind usando @apply */
+
+/* Navbar que ya tienes */
+.navbar {
+  @apply w-full bg-blue-700 text-white;
+}
+
+.navbar h1 {
+  @apply text-lg font-semibold;
+}
+
+.navbar span {
+  @apply text-xs text-blue-100;
+}

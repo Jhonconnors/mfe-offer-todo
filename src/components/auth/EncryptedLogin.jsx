@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import PUBLIC_KEY_PEM from "../publicKey";
+import PUBLIC_KEY_PEM from "../../config/publicKey";
 
 // --- Helpers para RSA / Base64
 function pemToArrayBuffer(pem) {
@@ -92,20 +92,54 @@ export default function EncryptedLogin({ apiUrl }) {
       setStatus("Error en el proceso de login");
     }
   }
-
-  return (
-    <div className="login-page">
-      <div className="login-box">
-        <h2>Acceso Seguro</h2>
-        <form onSubmit={handleSubmit}>
-          <label>Usuario</label>
-          <input value={username} onChange={e => setUsername(e.target.value)} />
-          <label>Contraseña</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          <button type="submit">Ingresar</button>
-        </form>
-        {status && <p className="status">{status}</p>}
+   return (
+    <div className="p-6 space-y-4">
+      <div className="text-center space-y-1">
+        <h2 className="text-xl font-semibold text-slate-900">
+          Acceso seguro
+        </h2>
+        <p className="text-xs text-slate-500">
+          Tus credenciales se cifran con RSA antes de ser enviadas al servidor.
+        </p>
       </div>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="space-y-1">
+          <label className="block text-xs font-medium text-slate-700">
+            Usuario
+          </label>
+          <input
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="block text-xs font-medium text-slate-700">
+            Contraseña
+          </label>
+          <input
+            type="password"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 mt-2 transition"
+        >
+          Ingresar
+        </button>
+      </form>
+
+      {status && (
+        <p className="text-xs text-center text-slate-600 mt-1">
+          {status}
+        </p>
+      )}
     </div>
   );
 }

@@ -1,0 +1,37 @@
+/* ----------------------------
+   GRID GENERAL DE PRODUCTOS
+-------------------------------- */
+
+.offers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-top: 20px;
+}
+
+.offers-grid-highlight {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .offers-grid,
+  .offers-grid-highlight {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .offers-grid,
+  .offers-grid-highlight {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mensaje vacío */
+.offer-empty {
+  text-align: center;
+  font-size: 15px;
+  padding: 25px 0;
+  color: #7a7a7a;
+}
