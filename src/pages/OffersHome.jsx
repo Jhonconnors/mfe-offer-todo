@@ -46,9 +46,9 @@ const OffersHome = () => {
     setError(null);
     setProducts([]); // Limpiar la grilla visualmente
 
-    // 2. Definir URLs base (Asegúrate que coincidan con tu Backend Java)
-    const FARMACY_BASE_URL = "http://localhost:8080"; 
-    const SUPERMARKET_BASE_URL = "http://localhost:9090"; 
+    // Usamos process.env para acceder a lo que definimos en el archivo .env
+    const FARMACY_BASE_URL = process.env.REACT_APP_FARMACY_API_URL;
+    const SUPERMARKET_BASE_URL = process.env.REACT_APP_SUPERMARKET_API_URL;
 
     let url = "";
 
