@@ -4,7 +4,6 @@ import FiltersBar from "../components/common/FiltersBar";
 import OffersGrid from "../components/offers/OffersGrid";
 import CookiesBanner from "../components/common/CookiesBanner";
 import GeoBanner from "../components/common/GeoBanner";
-import { mockOffers } from "../components/offers/mock/mockOffers"; // Fallback por si la API falla
 
 import "../styles/offersHome.css";
 import "../styles/filtersBar.css";
@@ -19,7 +18,7 @@ const OffersHome = () => {
   // IMPORTANTE: Este estado decide a qué API llamar
   const [selectedCompanyType, setSelectedCompanyType] = useState("Farmacia"); 
 
-  const [products, setProducts] = useState([]); // Datos de la API
+  const [products, setProducts] = useState([]); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -27,14 +26,13 @@ const OffersHome = () => {
   const [cookiesChoice, setCookiesChoice] = useState(null);
   const [geoStatus, setGeoStatus] = useState("idle");
 
-  // --- Datos estáticos para los filtros ---
+  // --- Datos estáticos ---
   const communes = useMemo(() => ["Santiago Centro", "Providencia", "Las Condes"], []);
   const categories = useMemo(() => ["Todas", "Medicamentos", "Despensa"], []);
   const companyTypes = ["Farmacia", "Supermercado", "Todas"];
 
-  // --- LÓGICA PRINCIPAL: SWITCH DE APIS ---
+  // --- LÓGICA PRINCIPAL ---
   const handleSearch = async (term) => {
-    // 1. Actualizamos el estado search con lo que vino del FiltersBar
     setSearch(term);
 
     if (!term || term.trim().length === 0) {
@@ -44,107 +42,109 @@ const OffersHome = () => {
 
     setLoading(true);
     setError(null);
-    setProducts([]); // Limpiar la grilla visualmente
+    setProducts([]); 
 
-    // Usamos process.env para acceder a lo que definimos en el archivo .env
     const FARMACY_BASE_URL = process.env.REACT_APP_FARMACY_API_URL;
     const SUPERMARKET_BASE_URL = process.env.REACT_APP_SUPERMARKET_API_URL;
 
-    let url = "";
-
-    // 3. DECISIÓN DE API SEGÚN TIPO DE COMERCIO
-    if (selectedCompanyType === "Farmacia") {
-      // Llama al Controller de Farmacia
-      url = `${FARMACY_BASE_URL}/v1/farmacy/medicament/product?q=${term}&comuna=${selectedCommune}`;
-    
-    } else if (selectedCompanyType === "Supermercado") {
-      // Llama al Controller de Supermercado
-      url = `${SUPERMARKET_BASE_URL}/v1/supermarkets/product?q=${term}&comuna=${selectedCommune}`;
-    
-    } else {
-      alert("Para buscar en la API, por favor selecciona 'Farmacia' o 'Supermercado' en el filtro.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      console.log(`Buscando en: ${selectedCompanyType} -> URL: ${url}`);
-      
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error("Error en la respuesta del servidor (Backend no disponible o error 500)");
-      }
+      // ============================================================
+      // CASO 1: SUPERMERCADO (Tu nuevo Backend Java)
+      // ============================================================
+      if (selectedCompanyType === "Supermercado") {
+        const url = `${SUPERMARKET_BASE_URL}/v1/supermarkets/product?q=${term}&comuna=${selectedCommune}`;
+        console.log("🚀 [Frontend] Llamando a Supermercado:", url);
 
-      const data = await response.json();
-      console.log("Datos recibidos:", data);
-
-      // 4. Transformar los datos del Backend al formato del Frontend
-      // Basado en el contrato Swagger:
-      // - items: array
-      // - nombre, descripcion, imagen
-      // - precioUnitario: { valor, moneda }
-      // - farmaciaUrl O supermercadoUrl
-      
-      if (data.items && Array.isArray(data.items)) {
+        const response = await fetch(url);
         
-        const mappedProducts = data.items.map((item, index) => ({
-          // Generamos un ID único ya que el contrato no devuelve ID
-          id: `api-${index}-${Date.now()}`,
-          
-          name: item.nombre, 
-          description: item.descripcion, // Agregamos descripción por si la usas en el futuro
-          
-          // Acceso seguro al precio unitario según contrato
-          price: item.precioUnitario ? item.precioUnitario.valor : 0,
-          currency: item.precioUnitario ? item.precioUnitario.moneda : "CLP",
-          
-          image: item.imagen || "https://via.placeholder.com/150", 
-          
-          companyType: selectedCompanyType,
-          companyName: selectedCompanyType === "Farmacia" ? "Farmacia" : "Supermercado",
-          
-          // La URL cambia de nombre según si es farmacia o super (según contrato)
-          url: item.farmaciaUrl || item.supermercadoUrl || "#", 
-          
-          commune: selectedCommune
-        }));
+        if (!response.ok) {
+           throw new Error(`Error del servidor: ${response.status}`);
+        }
 
-        setProducts(mappedProducts);
+        const data = await response.json();
+        console.log("📦 [Frontend] Respuesta Supermercado RAW:", data);
+
+        // Mapeo específico para tu Backend de Supermercados
+        if (data.items && Array.isArray(data.items)) {
+          const mappedProducts = data.items.map((item, index) => ({
+            id: `super-${index}-${Date.now()}`,
+            name: item.nombre, // Backend dice 'nombre'
+            description: item.descripcion || "Producto de Supermercado",
+            // Usamos ?. para evitar crash si precioUnitario viene null
+            price: item.precioUnitario?.valor || 0, 
+            currency: item.precioUnitario?.moneda || "CLP",
+            image: item.imagen || "https://via.placeholder.com/150",
+            companyType: "Supermercado",
+            // Detectamos si es Lider o Santa Isabel por la URL
+            companyName: item.supermercadoUrl?.includes("lider") ? "Lider" : "Santa Isabel",
+            url: item.supermercadoUrl || "#",
+            commune: selectedCommune
+          }));
+          
+          setProducts(mappedProducts);
+        } else {
+          setProducts([]);
+        }
+
+      // ============================================================
+      // CASO 2: FARMACIA (Tu backend original)
+      // ============================================================
+      } else if (selectedCompanyType === "Farmacia") {
+        const url = `${FARMACY_BASE_URL}/v1/farmacy/medicament/product?q=${term}&comuna=${selectedCommune}`;
+        console.log("💊 [Frontend] Llamando a Farmacia:", url);
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Error en API Farmacia");
+        
+        const data = await response.json();
+
+        // Asumiendo que Farmacia devuelve la misma estructura 'items'
+        // Si tu API de farmacia es diferente, ajusta este mapeo
+        if (data.items && Array.isArray(data.items)) {
+             const mappedProducts = data.items.map((item, index) => ({
+                id: `farm-${index}-${Date.now()}`,
+                name: item.nombre,
+                description: item.descripcion,
+                price: item.precioUnitario?.valor || 0,
+                currency: "CLP",
+                image: item.imagen,
+                companyType: "Farmacia",
+                companyName: "Farmacia",
+                url: item.farmaciaUrl,
+                commune: selectedCommune
+             }));
+             setProducts(mappedProducts);
+        } else {
+            setProducts([]);
+        }
+
       } else {
-        setProducts([]); // Lista vacía si no hay items
+        alert("Selecciona Farmacia o Supermercado");
+        setLoading(false);
       }
 
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("No se pudo conectar con el servidor. Verifica que el Backend Java esté corriendo.");
+      console.error("❌ Error en handleSearch:", err);
+      setError("No se pudo obtener la información. Revisa la consola (F12) para más detalles.");
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Manejo de favoritos ---
   const toggleFavorite = (id) => {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
-  // --- Geolocalización ---
   const handleUseGeolocation = () => {
     if (!navigator.geolocation) {
       setGeoStatus("error");
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      () => {
-        setSelectedCommune("Santiago Centro"); 
-        setGeoStatus("ok");
-      },
-      () => {
-        setGeoStatus("denied");
-        setSelectedCommune("Santiago Centro");
-      }
+      () => { setSelectedCommune("Santiago Centro"); setGeoStatus("ok"); },
+      () => { setGeoStatus("denied"); setSelectedCommune("Santiago Centro"); }
     );
   };
 
@@ -154,13 +154,9 @@ const OffersHome = () => {
       <CookiesBanner choice={cookiesChoice} setChoice={setCookiesChoice} />
 
       <div className="offers-layout">
-        
-        {/* SIDEBAR CON FILTROS */}
         <aside className="offers-sidebar">
           <h3>Filtros</h3>
           <FiltersBar
-            // No pasamos 'search' ni 'setSearch' para no actualizar en cada tecla
-            // Solo pasamos los valores necesarios para los selects
             selectedCommune={selectedCommune}
             setSelectedCommune={setSelectedCommune}
             communes={communes}
@@ -170,29 +166,23 @@ const OffersHome = () => {
             selectedCompanyType={selectedCompanyType}
             setSelectedCompanyType={setSelectedCompanyType}
             companyTypes={companyTypes}
-            onSearch={handleSearch} /* <--- Aquí conectamos el botón con la función */
+            onSearch={handleSearch}
           />
         </aside>
 
-        {/* CONTENIDO PRINCIPAL */}
         <main className="offers-content">
           <div className="offers-header">
             <h2>Resultados</h2>
-            <span>
-              {loading ? "Cargando..." : `${products.length} productos encontrados`}
-            </span>
+            <span>{loading ? "Cargando..." : `${products.length} productos encontrados`}</span>
           </div>
 
-          {/* Mensajes de error o carga */}
-          {loading && <div className="loading-msg">Buscando productos...</div>}
+          {loading && <div className="loading-msg">⏳ Buscando ofertas...</div>}
           {error && <div className="error-msg" style={{color: 'red', margin: '1rem 0'}}>{error}</div>}
           
-          {/* Si no hay búsqueda ni datos, mostramos mensaje inicial */}
           {!loading && !error && products.length === 0 && search === "" && (
              <div className="info-msg">Usa los filtros y presiona Buscar.</div>
           )}
 
-          {/* GRID DE PRODUCTOS */}
           <OffersGrid
             offers={products}
             favorites={favorites}
@@ -207,9 +197,7 @@ const OffersHome = () => {
           <a href="#privacidad">Política de Privacidad</a>
           <a href="#cookies">Aviso de Cookies</a>
         </div>
-        <p className="offer-footer-copy">
-          Offer Todo · Proyecto académico
-        </p>
+        <p className="offer-footer-copy">Offer Todo · Proyecto académico</p>
       </footer>
     </div>
   );

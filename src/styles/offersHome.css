@@ -117,3 +117,14 @@
     width: 100%;
   }
 }
+
+.offers-row {
+  margin-bottom: 40px;
+}
+
+.offers-row-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #333;
+}
