@@ -47,19 +47,18 @@ const OffersHome = () => {
     setProducts([]); // Limpiar la grilla visualmente
 
     // Usamos process.env para acceder a lo que definimos en el archivo .env
-    const FARMACY_BASE_URL = process.env.REACT_APP_FARMACY_API_URL;
-    const SUPERMARKET_BASE_URL = process.env.REACT_APP_SUPERMARKET_API_URL;
+    const BFF_BASE_URL = process.env.REACT_APP_BFF_API_URL;
 
     let url = "";
 
     // 3. DECISIÓN DE API SEGÚN TIPO DE COMERCIO
     if (selectedCompanyType === "Farmacia") {
       // Llama al Controller de Farmacia
-      url = `${FARMACY_BASE_URL}/v1/farmacy/medicament/product?q=${term}&comuna=${selectedCommune}`;
+      url = `${BFF_BASE_URL}/v1/farmacy/medicament/product?q=${term}&comuna=${selectedCommune}`;
     
     } else if (selectedCompanyType === "Supermercado") {
       // Llama al Controller de Supermercado
-      url = `${SUPERMARKET_BASE_URL}/v1/supermarkets/product?q=${term}&comuna=${selectedCommune}`;
+      url = `${BFF_BASE_URL}/v1/supermarkets/product?q=${term}&comuna=${selectedCommune}`;
     
     } else {
       alert("Para buscar en la API, por favor selecciona 'Farmacia' o 'Supermercado' en el filtro.");

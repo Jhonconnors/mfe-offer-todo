@@ -36,7 +36,7 @@ function fechaMinutos() {
 }
 
 // --- Componente
-export default function EncryptedLogin({ apiUrl }) {
+export default function EncryptedLogin() {
   const [pubKey, setPubKey] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -69,6 +69,8 @@ export default function EncryptedLogin({ apiUrl }) {
     if (!pubKey) return setStatus("Clave pública no cargada");
     if (!username || !password) return setStatus("Completa usuario y contraseña");
 
+    const BFF_BASE_URL = process.env.REACT_APP_BFF_API_URL;
+    let url = "";
     try {
       setStatus("Encriptando...");
       const encUser = await encryptField(username);
@@ -77,8 +79,8 @@ export default function EncryptedLogin({ apiUrl }) {
 
       const body = JSON.stringify({ username: encUser, password: encPass });
       setStatus("Enviando al servidor...");
-
-      const res = await fetch(apiUrl, {
+      url = `${BFF_BASE_URL}/auth/login`;
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body
