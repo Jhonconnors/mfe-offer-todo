@@ -1,125 +1,53 @@
-// src/pages/OffersHome.jsx
 import React, { useState, useMemo } from "react";
 import FiltersBar from "../components/FiltersBar";
 import OffersGrid from "../components/OffersGrid";
 import CookiesBanner from "../components/CookiesBanner";
 import GeoBanner from "../components/GeoBanner";
 
-//  Datos mock para el front (luego se cambian por APIs reales)
+// Datos mock
 const mockOffers = [
-  {
-    id: 1,
-    name: "Leche Entera 1L",
-    category: "Lácteos",
-    companyType: "Supermercado",
-    companyName: "Jumbo",
-    commune: "Santiago Centro",
-    price: 990,
-    originalPrice: 1490,
-    discountPercentage: 34,
-    lastUpdate: "2025-11-15",
-    stock: "Disponible",
-    imageUrl: "",
-    url: "#",
-  },
-  {
-    id: 2,
-    name: "Arroz 1kg",
-    category: "Abarrotes",
-    companyType: "Supermercado",
-    companyName: "Lider",
-    commune: "Ñuñoa",
-    price: 1190,
-    originalPrice: 1590,
-    discountPercentage: 25,
-    lastUpdate: "2025-11-16",
-    stock: "Disponible",
-    imageUrl: "",
-    url: "#",
-  },
-  {
-    id: 3,
-    name: "Paracetamol 500mg 16 comp.",
-    category: "Medicamentos",
-    companyType: "Farmacia",
-    companyName: "Cruz Verde",
-    commune: "Santiago Centro",
-    price: 1590,
-    originalPrice: 1990,
-    discountPercentage: 20,
-    lastUpdate: "2025-11-16",
-    stock: "Stock limitado",
-    imageUrl: "",
-    url: "#",
-  },
-  {
-    id: 4,
-    name: "Vitamina C 1g 10 comp.",
-    category: "Suplementos",
-    companyType: "Farmacia",
-    companyName: "Salcobrand",
-    commune: "Providencia",
-    price: 2490,
-    originalPrice: 3490,
-    discountPercentage: 29,
-    lastUpdate: "2025-11-14",
-    stock: "Disponible",
-    imageUrl: "",
-    url: "#",
-  },
-  {
-    id: 5,
-    name: "Pan de molde 500g",
-    category: "Panadería",
-    companyType: "Supermercado",
-    companyName: "Lider",
-    commune: "Santiago Centro",
-    price: 1290,
-    originalPrice: 1590,
-    discountPercentage: 19,
-    lastUpdate: "2025-11-16",
-    stock: "Disponible",
-    imageUrl: "",
-    url: "#",
-  },
+  // aquí irían tus productos reales; por ahora está vacío con comentario
 ];
 
-const OffersHome = () => {
+const OffersHome = ({ isAuthenticated }) => {
   const [search, setSearch] = useState("");
   const [selectedCommune, setSelectedCommune] = useState("Santiago Centro");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [selectedCompanyType, setSelectedCompanyType] = useState("Todas");
   const [favorites, setFavorites] = useState([]);
-  const [cookiesChoice, setCookiesChoice] = useState(null); // null | "accepted" | "rejected"
-  const [geoStatus, setGeoStatus] = useState("idle"); // idle | ok | denied | error
+  const [cookiesChoice, setCookiesChoice] = useState(null);
+  const [geoStatus, setGeoStatus] = useState("idle");
 
-  // 🔍 valores únicos para filtros
+  // fondo dinámico según login
+  const mainBgClass = isAuthenticated
+    ? "offer-main offer-main-auth"
+    : "offer-main";
+
+  // valores únicos y filtrado
   const communes = useMemo(
     () => ["Santiago Centro", ...new Set(mockOffers.map((o) => o.commune))],
     []
   );
+
   const categories = useMemo(
     () => ["Todas", ...new Set(mockOffers.map((o) => o.category))],
     []
   );
+
   const companyTypes = ["Todas", "Supermercado", "Farmacia"];
 
-  //  filtrado según requisitos (buscar, comuna, categoría, tipo)
   const filteredOffers = useMemo(() => {
     return mockOffers.filter((offer) => {
-      const matchesSearch =
-        search.trim().length === 0 ||
-        offer.name.toLowerCase().includes(search.toLowerCase()) ||
-        offer.companyName.toLowerCase().includes(search.toLowerCase());
+      const text = `${offer.name} ${offer.companyName}`.toLowerCase();
+      const q = search.toLowerCase().trim();
 
+      const matchesSearch = q.length === 0 || text.includes(q);
       const matchesCommune =
         !selectedCommune ||
         selectedCommune === "Todas" ||
         offer.commune === selectedCommune;
-
       const matchesCategory =
         selectedCategory === "Todas" || offer.category === selectedCategory;
-
       const matchesType =
         selectedCompanyType === "Todas" ||
         offer.companyType === selectedCompanyType;
@@ -128,14 +56,12 @@ const OffersHome = () => {
     });
   }, [search, selectedCommune, selectedCategory, selectedCompanyType]);
 
-  //  gestión de favoritos solo en front
   const toggleFavorite = (id) => {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
-  //  geolocalización (solo front – luego se conecta al backend/BFF)
   const handleUseGeolocation = () => {
     if (!navigator.geolocation) {
       setGeoStatus("error");
@@ -144,31 +70,22 @@ const OffersHome = () => {
 
     navigator.geolocation.getCurrentPosition(
       () => {
-        // Aquí idealmente el BFF traduce lat/long a comuna.
-        // Por ahora solo simulamos que la comuna detectada es "Santiago Centro".
         setSelectedCommune("Santiago Centro");
         setGeoStatus("ok");
       },
       () => {
         setGeoStatus("denied");
-        setSelectedCommune("Santiago Centro"); // comportamiento por defecto
+        setSelectedCommune("Santiago Centro");
       }
     );
   };
 
   return (
     <div className="offer-app">
-      {/* Banner de geolocalización automática (CU04) */}
-      <GeoBanner
-        status={geoStatus}
-        onUseGeolocation={handleUseGeolocation}
-      />
-
-      {/* Banner de cookies / privacidad (CU10, RNF18, RNF19) */}
+      <GeoBanner status={geoStatus} onUseGeolocation={handleUseGeolocation} />
       <CookiesBanner choice={cookiesChoice} setChoice={setCookiesChoice} />
 
-      <main className="offer-main">
-        {/* Barra de filtros tipo Knasta (buscar, comuna, categoría, tipo) */}
+      <main className={mainBgClass}>
         <FiltersBar
           search={search}
           setSearch={setSearch}
@@ -183,20 +100,20 @@ const OffersHome = () => {
           companyTypes={companyTypes}
         />
 
-        {/* Contenedor tipo Knasta: destacados + listado */}
         <section className="offer-layout">
           <section className="offer-highlight">
             <h2>Ofertas destacadas cerca de ti</h2>
             <p className="offer-highlight-subtitle">
               Mostrando productos con mejor descuento por supermercado y
-              farmacia. Máx. 5 por empresa.
+              farmacia.
             </p>
-            {/* Para simplificar, usamos las mismas ofertas filtradas */}
+
             <OffersGrid
               offers={filteredOffers.slice(0, 8)}
               favorites={favorites}
               onToggleFavorite={toggleFavorite}
               variant="highlight"
+              isAuthenticated={isAuthenticated}
             />
           </section>
 
@@ -210,6 +127,7 @@ const OffersHome = () => {
               offers={filteredOffers}
               favorites={favorites}
               onToggleFavorite={toggleFavorite}
+              isAuthenticated={isAuthenticated}
             />
           </section>
 
@@ -227,7 +145,9 @@ const OffersHome = () => {
                     .map((o) => (
                       <li key={o.id}>
                         <span className="offer-fav-name">{o.name}</span>
-                        <span className="offer-fav-store">{o.companyName}</span>
+                        <span className="offer-fav-store">
+                          {o.companyName}
+                        </span>
                       </li>
                     ))}
                 </ul>

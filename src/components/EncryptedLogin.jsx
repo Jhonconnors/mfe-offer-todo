@@ -3,9 +3,10 @@ import PUBLIC_KEY_PEM from "../publicKey";
 
 // --- Helpers para RSA / Base64
 function pemToArrayBuffer(pem) {
-  const b64 = pem.replace(/-----BEGIN PUBLIC KEY-----/, "")
-                 .replace(/-----END PUBLIC KEY-----/, "")
-                 .replace(/\s+/g, "");
+  const b64 = pem
+    .replace(/-----BEGIN PUBLIC KEY-----/, "")
+    .replace(/-----END PUBLIC KEY-----/, "")
+    .replace(/\s+/g, "");
   const binary = atob(b64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -32,11 +33,11 @@ function arrayBufferToBase64(buffer) {
 
 function fechaMinutos() {
   const now = new Date();
-  return now.toISOString().slice(0,16);
+  return now.toISOString().slice(0, 16);
 }
 
 // --- Componente
-export default function EncryptedLogin({ apiUrl }) {
+export default function EncryptedLogin({ apiUrl, onLoginSuccess }) {
   const [pubKey, setPubKey] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -58,7 +59,11 @@ export default function EncryptedLogin({ apiUrl }) {
     const textWithDate = `${text}_+_${fechaMinutos()}`;
     const base64 = btoa(textWithDate);
     const encoded = new TextEncoder().encode(base64);
-    const cipherBuffer = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, pubKey, encoded);
+    const cipherBuffer = await crypto.subtle.encrypt(
+      { name: "RSA-OAEP" },
+      pubKey,
+      encoded
+    );
     return arrayBufferToBase64(cipherBuffer);
   }
 
@@ -67,7 +72,8 @@ export default function EncryptedLogin({ apiUrl }) {
     setStatus("");
 
     if (!pubKey) return setStatus("Clave pública no cargada");
-    if (!username || !password) return setStatus("Completa usuario y contraseña");
+    if (!username || !password)
+      return setStatus("Completa usuario y contraseña");
 
     try {
       setStatus("Encriptando...");
@@ -75,31 +81,53 @@ export default function EncryptedLogin({ apiUrl }) {
       const encPass = await encryptField(password);
       setPassword("");
 
+      // Si no tenemos apiUrl, simulamos login exitoso (modo demo front)
+      if (!apiUrl) {
+        console.log("Payload encriptado (demo):", {
+          username: encUser,
+          password: encPass,
+        });
+        setStatus("Login exitoso (demo sin backend)");
+        if (onLoginSuccess) onLoginSuccess();
+        return;
+      }
+
       const body = JSON.stringify({ username: encUser, password: encPass });
       setStatus("Enviando al servidor...");
 
       const res = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body
+        body,
       });
 
-      if (!res.ok) return setStatus(`Error ${res.status}: ${res.statusText}`);
+      if (!res.ok) {
+        return setStatus(`Error ${res.status}: ${res.statusText}`);
+      }
+
       const data = await res.json().catch(() => ({}));
-      setStatus(`Login exitoso${data?.token ? ", token recibido" : ""}`);
+      setStatus(
+        `Login exitoso${data?.token ? ", token recibido" : ""}`
+      );
+
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
     } catch (err) {
       console.error(err);
       setStatus("Error en el proceso de login");
     }
   }
-   return (
+
+  return (
     <div className="p-6 space-y-4">
       <div className="text-center space-y-1">
         <h2 className="text-xl font-semibold text-slate-900">
           Acceso seguro
         </h2>
         <p className="text-xs text-slate-500">
-          Tus credenciales se cifran con RSA antes de ser enviadas al servidor.
+          Tus credenciales se cifran con RSA antes de ser enviadas al
+          servidor.
         </p>
       </div>
 
