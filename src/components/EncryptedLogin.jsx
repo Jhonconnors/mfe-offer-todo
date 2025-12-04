@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import PUBLIC_KEY_PEM from "../../config/publicKey";
+import PUBLIC_KEY_PEM from "../publicKey";
 
 // --- Helpers para RSA / Base64
 function pemToArrayBuffer(pem) {
-  const b64 = pem.replace(/-----BEGIN PUBLIC KEY-----/, "")
-                 .replace(/-----END PUBLIC KEY-----/, "")
-                 .replace(/\s+/g, "");
+  const b64 = pem
+    .replace(/-----BEGIN PUBLIC KEY-----/, "")
+    .replace(/-----END PUBLIC KEY-----/, "")
+    .replace(/\s+/g, "");
   const binary = atob(b64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -32,15 +33,26 @@ function arrayBufferToBase64(buffer) {
 
 function fechaMinutos() {
   const now = new Date();
-  return now.toISOString().slice(0,16);
+  return now.toISOString().slice(0, 16);
 }
 
 // --- Componente
-export default function EncryptedLogin() {
+<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
+<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
+=======
+// Ahora recibe también onLoginSuccess
+>>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
+=======
+// Ahora recibe también onLoginSuccess
+>>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
+export default function EncryptedLogin({ apiUrl, onLoginSuccess }) {
   const [pubKey, setPubKey] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
+
+  // Si no te pasan apiUrl por props, usa la del .env
+  const endpoint = apiUrl || process.env.REACT_APP_LOGIN_URL;
 
   useEffect(() => {
     (async () => {
@@ -58,7 +70,11 @@ export default function EncryptedLogin() {
     const textWithDate = `${text}_+_${fechaMinutos()}`;
     const base64 = btoa(textWithDate);
     const encoded = new TextEncoder().encode(base64);
-    const cipherBuffer = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, pubKey, encoded);
+    const cipherBuffer = await crypto.subtle.encrypt(
+      { name: "RSA-OAEP" },
+      pubKey,
+      encoded
+    );
     return arrayBufferToBase64(cipherBuffer);
   }
 
@@ -67,41 +83,86 @@ export default function EncryptedLogin() {
     setStatus("");
 
     if (!pubKey) return setStatus("Clave pública no cargada");
-    if (!username || !password) return setStatus("Completa usuario y contraseña");
+    if (!username || !password)
+      return setStatus("Completa usuario y contraseña");
+<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
+<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
+=======
+    if (!endpoint) {
+      return setStatus("Falta configurar la URL de login (REACT_APP_LOGIN_URL o apiUrl).");
+    }
+>>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
+=======
+    if (!endpoint) {
+      return setStatus("Falta configurar la URL de login (REACT_APP_LOGIN_URL o apiUrl).");
+    }
+>>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
 
-    const BFF_BASE_URL = process.env.REACT_APP_BFF_API_URL;
-    let url = "";
     try {
       setStatus("Encriptando...");
       const encUser = await encryptField(username);
       const encPass = await encryptField(password);
       setPassword("");
 
+      // Si no tenemos apiUrl, simulamos login exitoso (modo demo front)
+      if (!apiUrl) {
+        console.log("Payload encriptado (demo):", {
+          username: encUser,
+          password: encPass,
+        });
+        setStatus("Login exitoso (demo sin backend)");
+        if (onLoginSuccess) onLoginSuccess();
+        return;
+      }
+
       const body = JSON.stringify({ username: encUser, password: encPass });
       setStatus("Enviando al servidor...");
-      url = `${BFF_BASE_URL}/auth/login`;
-      const res = await fetch(url, {
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body
+        body,
       });
 
-      if (!res.ok) return setStatus(`Error ${res.status}: ${res.statusText}`);
+      if (!res.ok) {
+        return setStatus(`Error ${res.status}: ${res.statusText}`);
+      }
+
       const data = await res.json().catch(() => ({}));
+<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
+      setStatus(
+        `Login exitoso${data?.token ? ", token recibido" : ""}`
+      );
+
+      if (onLoginSuccess) {
+        onLoginSuccess();
+=======
       setStatus(`Login exitoso${data?.token ? ", token recibido" : ""}`);
+
+      // 🔐 Avisamos al padre (App.js) que el login fue OK
+      if (onLoginSuccess) {
+        // Le pasamos el token por si luego quieres guardarlo
+        onLoginSuccess(data?.token || null);
+<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
+>>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
+=======
+>>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
+      }
     } catch (err) {
       console.error(err);
       setStatus("Error en el proceso de login");
     }
   }
-   return (
+
+  return (
     <div className="p-6 space-y-4">
       <div className="text-center space-y-1">
         <h2 className="text-xl font-semibold text-slate-900">
           Acceso seguro
         </h2>
         <p className="text-xs text-slate-500">
-          Tus credenciales se cifran con RSA antes de ser enviadas al servidor.
+          Tus credenciales se cifran con RSA antes de ser enviadas al
+          servidor.
         </p>
       </div>
 

@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --------------------------------------------------------
+   NAVBAR – solo estructura, sin colores (los da React)
+--------------------------------------------------------- */
+.navbar {
+  @apply w-full;
+}
+
+.navbar h1 {
+  @apply text-lg font-semibold;
+}
+
+.navbar span {
+  @apply text-xs text-blue-100;
+}
+
+/* --------------------------------------------------------
+   ANIMACIONES GLOBALS
+--------------------------------------------------------- */
+
+/* Fade In */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Pop Icon */
+@keyframes pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  80% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pop {
+  animation: pop 0.4s ease-out forwards;
+}
+
+/* Heartbeat */
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.15); }
+  40% { transform: scale(0.95); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 0.9s ease-in-out infinite;
+}
+
+/* Bounce lento (🛒 carrito) */
+@keyframes bounceSlow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.animate-bounce-slow {
+  animation: bounceSlow 1.5s ease-in-out infinite;
+}
+
+/* --------------------------------------------------------
+   BOTONES – efectos globales
+--------------------------------------------------------- */
+
+button,
+.btn {
+  @apply transition-all duration-200 ease-out;
+}
+
+/* Hover suave */
+button:hover,
+.btn:hover {
+  @apply -translate-y-[1px] shadow-md;
+}
+
+/* Presionado */
+button:active,
+.btn:active {
+  @apply translate-y-[1px] shadow-sm;
+}
+
+/* Hover fuerte (para botones especiales) */
+.btn-strong-hover:hover {
+  @apply -translate-y-[2px] shadow-lg scale-[1.02];
+}
+
+/* --------------------------------------------------------
+   ESTADO AUTENTICADO – fondo especial
+--------------------------------------------------------- */
+
+.offer-main-auth {
+  background: linear-gradient(to bottom, #d3f8e2, #b5f7cc);
+  transition: background 0.5s ease;
+}
