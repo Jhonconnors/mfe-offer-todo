@@ -4,7 +4,6 @@ import FiltersBar from "../components/common/FiltersBar";
 import OffersGrid from "../components/offers/OffersGrid";
 import CookiesBanner from "../components/common/CookiesBanner";
 import GeoBanner from "../components/common/GeoBanner";
-import { mockOffers } from "../components/offers/mock/mockOffers"; // Fallback por si la API falla
 
 import "../styles/offersHome.css";
 import "../styles/filtersBar.css";

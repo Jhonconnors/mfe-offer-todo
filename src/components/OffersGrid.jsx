@@ -1,8 +1,7 @@
 import React from "react";
 import ProductCard from "./ProductCard";
 
-<<<<<<< Updated upstream:src/components/OffersGrid.jsx
-<<<<<<< Updated upstream:src/components/OffersGrid.jsx
+
 const OffersGrid = ({
   offers,
   favorites,
@@ -10,12 +9,10 @@ const OffersGrid = ({
   variant,
   isAuthenticated,
 }) => {
-=======
+
+
 const OffersGrid = ({ offers, favorites, onToggleFavorite, variant, isAuthenticated }) => {
->>>>>>> Stashed changes:src/components/offers/OffersGrid.jsx
-=======
-const OffersGrid = ({ offers, favorites, onToggleFavorite, variant, isAuthenticated }) => {
->>>>>>> Stashed changes:src/components/offers/OffersGrid.jsx
+
   if (!offers || offers.length === 0) {
     return (
       <p className="offer-empty">
@@ -44,5 +41,6 @@ const OffersGrid = ({ offers, favorites, onToggleFavorite, variant, isAuthentica
     </div>
   );
 };
+}
 
 export default OffersGrid;

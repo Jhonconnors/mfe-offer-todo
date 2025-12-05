@@ -37,44 +37,47 @@ function fechaMinutos() {
 }
 
 // --- Componente
-<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
-<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
-=======
-// Ahora recibe también onLoginSuccess
->>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
-=======
-// Ahora recibe también onLoginSuccess
->>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
-export default function EncryptedLogin({ apiUrl, onLoginSuccess }) {
+export default function EncryptedLogin() {
   const [pubKey, setPubKey] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [token, setToken] = useState(null);
 
-  // Si no te pasan apiUrl por props, usa la del .env
-  const endpoint = apiUrl || process.env.REACT_APP_LOGIN_URL;
+  const BFF_BASE_URL = process.env.REACT_APP_BFF_API_URL || "";
 
+  // cargar clave pública + token previo
   useEffect(() => {
     (async () => {
       try {
         const key = await importPublicKey(PUBLIC_KEY_PEM);
         setPubKey(key);
       } catch (err) {
-        console.error(err);
+        console.error("Error importando clave pública:", err);
         setStatus("Error importando la clave pública");
       }
     })();
+
+    const existing = localStorage.getItem("token");
+    if (existing) {
+      setToken(existing);
+      setLoggedIn(true);
+    }
   }, []);
 
   async function encryptField(text) {
     const textWithDate = `${text}_+_${fechaMinutos()}`;
     const base64 = btoa(textWithDate);
     const encoded = new TextEncoder().encode(base64);
-    const cipherBuffer = await crypto.subtle.encrypt(
+
+    const cipherBuffer = await window.crypto.subtle.encrypt(
       { name: "RSA-OAEP" },
       pubKey,
       encoded
     );
+
     return arrayBufferToBase64(cipherBuffer);
   }
 
@@ -85,18 +88,8 @@ export default function EncryptedLogin({ apiUrl, onLoginSuccess }) {
     if (!pubKey) return setStatus("Clave pública no cargada");
     if (!username || !password)
       return setStatus("Completa usuario y contraseña");
-<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
-<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
-=======
-    if (!endpoint) {
-      return setStatus("Falta configurar la URL de login (REACT_APP_LOGIN_URL o apiUrl).");
-    }
->>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
-=======
-    if (!endpoint) {
-      return setStatus("Falta configurar la URL de login (REACT_APP_LOGIN_URL o apiUrl).");
-    }
->>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
+
+    setLoading(true);
 
     try {
       setStatus("Encriptando...");
@@ -104,56 +97,106 @@ export default function EncryptedLogin({ apiUrl, onLoginSuccess }) {
       const encPass = await encryptField(password);
       setPassword("");
 
-      // Si no tenemos apiUrl, simulamos login exitoso (modo demo front)
-      if (!apiUrl) {
-        console.log("Payload encriptado (demo):", {
-          username: encUser,
-          password: encPass,
-        });
-        setStatus("Login exitoso (demo sin backend)");
-        if (onLoginSuccess) onLoginSuccess();
-        return;
-      }
-
       const body = JSON.stringify({ username: encUser, password: encPass });
+
       setStatus("Enviando al servidor...");
 
-      const res = await fetch(endpoint, {
+      const url = `${BFF_BASE_URL.replace(/\/$/, "")}/auth/login`;
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body,
       });
 
       if (!res.ok) {
-        return setStatus(`Error ${res.status}: ${res.statusText}`);
+        let text = await res.text().catch(() => "");
+        let message = text || res.statusText || "Error en la petición";
+        setStatus(`Error ${res.status}: ${message}`);
+        setLoading(false);
+        return;
       }
 
+      // el servidor retorna: accessToken, tokenType, expiresIn
       const data = await res.json().catch(() => ({}));
-<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
+
+      const receivedToken = data?.accessToken || null;
+
       setStatus(
-        `Login exitoso${data?.token ? ", token recibido" : ""}`
+        `Login exitoso${receivedToken ? ", token recibido" : ""}`
       );
 
-      if (onLoginSuccess) {
-        onLoginSuccess();
-=======
-      setStatus(`Login exitoso${data?.token ? ", token recibido" : ""}`);
+      setToken(receivedToken);
+      setLoggedIn(true);
 
-      // 🔐 Avisamos al padre (App.js) que el login fue OK
-      if (onLoginSuccess) {
-        // Le pasamos el token por si luego quieres guardarlo
-        onLoginSuccess(data?.token || null);
-<<<<<<< Updated upstream:src/components/EncryptedLogin.jsx
->>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
-=======
->>>>>>> Stashed changes:src/components/auth/EncryptedLogin.jsx
+      if (receivedToken) {
+        localStorage.setItem("token", receivedToken);
+
+        // 🔥 evento global (App.js lo usa para cerrar modal)
+        window.dispatchEvent(
+          new CustomEvent("app:login", { detail: receivedToken })
+        );
       }
+
+      setLoading(false);
     } catch (err) {
-      console.error(err);
+      console.error("Error en login:", err);
       setStatus("Error en el proceso de login");
+      setLoading(false);
     }
   }
 
+  function handleLogout() {
+    localStorage.removeItem("token");
+    setToken(null);
+    setLoggedIn(false);
+    setStatus("Sesión cerrada");
+    window.dispatchEvent(new CustomEvent("app:logout", { detail: null }));
+  }
+
+  // --- Vista si está logueado ---
+  if (loggedIn) {
+    return (
+      <div className="p-6 space-y-4">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold">Bienvenido</h2>
+          <p className="text-sm text-slate-500">
+            Has iniciado sesión correctamente.
+          </p>
+        </div>
+
+        <div className="bg-white rounded-lg p-4 shadow-sm">
+          <p className="text-sm">
+            Token:{" "}
+            {token ? token.slice(0, 30) + "..." : "No token"}
+          </p>
+
+          <div className="mt-4 space-y-2">
+            <button
+              onClick={handleLogout}
+              className="rounded-lg border px-3 py-2 text-sm"
+            >
+              Cerrar sesión
+            </button>
+
+            <button
+              onClick={() => setStatus("Acción de ejemplo ejecutada")}
+              className="rounded-lg bg-blue-600 text-white px-3 py-2 text-sm"
+            >
+              Ir al panel
+            </button>
+          </div>
+        </div>
+
+        {status && (
+          <p className="text-xs text-center text-slate-600 mt-1">
+            {status}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  // --- Vista login ---
   return (
     <div className="p-6 space-y-4">
       <div className="text-center space-y-1">
@@ -172,9 +215,12 @@ export default function EncryptedLogin({ apiUrl, onLoginSuccess }) {
             Usuario
           </label>
           <input
+            name="username"
+            autoComplete="username"
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            disabled={loading}
           />
         </div>
 
@@ -184,17 +230,23 @@ export default function EncryptedLogin({ apiUrl, onLoginSuccess }) {
           </label>
           <input
             type="password"
+            name="current-password"
+            autoComplete="current-password"
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
           />
         </div>
 
         <button
           type="submit"
-          className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 mt-2 transition"
+          disabled={loading}
+          className={`w-full rounded-lg ${
+            loading ? "opacity-60" : "bg-blue-600 hover:bg-blue-700"
+          } text-white text-sm font-medium py-2.5 mt-2 transition`}
         >
-          Ingresar
+          {loading ? "Procesando..." : "Ingresar"}
         </button>
       </form>
 

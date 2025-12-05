@@ -1,18 +1,54 @@
-import { useState } from "react";
+// src/App.jsx
+import { useState, useEffect } from "react";
 import Navbar from "./components/common/Navbar";
 import OffersHome from "./pages/OffersHome";
-import EncryptedLogin from "./components/auth/EncryptedLogin";
+import EncryptedLogin from "./components/EncryptedLogin";
 
 export default function App() {
   const [showLogin, setShowLogin] = useState(false);
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
 
   const openLogin = () => setShowLogin(true);
   const closeLogin = () => setShowLogin(false);
 
+  useEffect(() => {
+    // Cuando EncryptedLogin hace window.dispatchEvent(new CustomEvent("app:login", { detail: token }))
+    const handleAppLogin = (e) => {
+      const received = e?.detail ?? localStorage.getItem("token");
+      setToken(received);
+      // Cerrar modal si el token es válido
+      if (received) setShowLogin(false);
+    };
+
+    const handleAppLogout = () => {
+      setToken(null);
+      localStorage.removeItem("token");
+      // opcional: cerrar modal si está abierto
+      setShowLogin(false);
+    };
+
+    // Si otro tab actualiza localStorage
+    const handleStorage = (ev) => {
+      if (ev.key === "token") {
+        setToken(ev.newValue);
+      }
+    };
+
+    window.addEventListener("app:login", handleAppLogin);
+    window.addEventListener("app:logout", handleAppLogout);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("app:login", handleAppLogin);
+      window.removeEventListener("app:logout", handleAppLogout);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
   return (
     <>
-      {/* Barra superior siempre visible */}
-      <Navbar onLoginClick={openLogin} />
+      {/* Navbar recibe onLoginClick e isAuthenticated */}
+      <Navbar onLoginClick={openLogin} isAuthenticated={!!token} />
 
       {/* Modal de login (solo si showLogin === true) */}
       {showLogin && (
@@ -26,7 +62,7 @@ export default function App() {
               ×
             </button>
 
-            {/* Contenido del login */}
+            {/* EncryptedLogin ya guarda token y emite eventos */}
             <EncryptedLogin />
           </div>
         </div>
