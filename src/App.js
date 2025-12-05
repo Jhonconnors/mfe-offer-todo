@@ -12,39 +12,45 @@ export default function App() {
   const closeLogin = () => setShowLogin(false);
 
   useEffect(() => {
-    const onLogin = (e) => {
+    // Cuando EncryptedLogin hace window.dispatchEvent(new CustomEvent("app:login", { detail: token }))
+    const handleAppLogin = (e) => {
       const received = e?.detail ?? localStorage.getItem("token");
       setToken(received);
-      // cerrar modal si recibimos token válido
+      // Cerrar modal si el token es válido
       if (received) setShowLogin(false);
     };
 
-    const onLogout = () => {
+    const handleAppLogout = () => {
       setToken(null);
       localStorage.removeItem("token");
       // opcional: cerrar modal si está abierto
       setShowLogin(false);
     };
 
-    const onStorage = (ev) => {
-      if (ev.key === "token") setToken(ev.newValue);
+    // Si otro tab actualiza localStorage
+    const handleStorage = (ev) => {
+      if (ev.key === "token") {
+        setToken(ev.newValue);
+      }
     };
 
-    window.addEventListener("app:login", onLogin);
-    window.addEventListener("app:logout", onLogout);
-    window.addEventListener("storage", onStorage);
+    window.addEventListener("app:login", handleAppLogin);
+    window.addEventListener("app:logout", handleAppLogout);
+    window.addEventListener("storage", handleStorage);
 
     return () => {
-      window.removeEventListener("app:login", onLogin);
-      window.removeEventListener("app:logout", onLogout);
-      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("app:login", handleAppLogin);
+      window.removeEventListener("app:logout", handleAppLogout);
+      window.removeEventListener("storage", handleStorage);
     };
   }, []);
 
   return (
     <>
-      <Navbar onLoginClick={openLogin} token={token} />
+      {/* Navbar recibe onLoginClick e isAuthenticated */}
+      <Navbar onLoginClick={openLogin} isAuthenticated={!!token} />
 
+      {/* Modal de login (solo si showLogin === true) */}
       {showLogin && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 relative">
@@ -56,11 +62,13 @@ export default function App() {
               ×
             </button>
 
+            {/* EncryptedLogin ya guarda token y emite eventos */}
             <EncryptedLogin />
           </div>
         </div>
       )}
 
+      {/* Página de ofertas siempre visible */}
       <OffersHome />
     </>
   );
