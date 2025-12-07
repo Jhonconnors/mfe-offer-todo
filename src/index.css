@@ -99,3 +99,70 @@ button:active,
   background: linear-gradient(to bottom, #d3f8e2, #b5f7cc);
   transition: background 0.5s ease;
 }
+
+/* ==========================================================
+   ESTILOS FORZADOS PARA GRILLA Y TARJETAS (SOLUCIÓN FINAL)
+   ========================================================== */
+
+/* 1. LA GRILLA: Define cuántas columnas hay */
+.offers-grid-layout {
+  display: grid !important;
+  grid-template-columns: repeat(1, 1fr) !important; /* Celular: 1 columna */
+  gap: 20px !important;
+  width: 100% !important;
+  padding: 10px 0 !important;
+}
+
+/* Tablet: 2 columnas */
+@media (min-width: 640px) {
+  .offers-grid-layout {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* PC (Pantallas grandes): 4 COLUMNAS */
+@media (min-width: 1024px) {
+  .offers-grid-layout {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* 2. LA TARJETA: Centra todo el contenido */
+.product-card-layout {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important; /* Centra horizontalmente */
+  text-align: center !important;  /* Centra el texto */
+  justify-content: space-between !important;
+  height: 100% !important;
+  background-color: white !important;
+  padding: 16px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+  transition: all 0.2s ease-out !important;
+}
+
+.product-card-layout:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 3. IMÁGENES: Asegura que no se vayan a la izquierda */
+.product-card-layout img {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+}
+
+/* 4. BOTONES: Ancho completo y centrados */
+.product-card-layout .buttons-container {
+  display: flex !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin-top: auto !important;
+}
+
+

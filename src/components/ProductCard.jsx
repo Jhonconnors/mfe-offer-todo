@@ -1,155 +1,85 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function ProductCard({
-  offer,
-  isFavorite,
-  onToggleFavorite,
-  isAuthenticated,
-}) {
+export default function ProductCard({ offer, isFavorite, onToggleFavorite, isAuthenticated }) {
   const navigate = useNavigate();
-  const goToDetail = () => navigate(`/producto/${offer.id}`);
 
-  const tagColor =
-    offer.companyType === "Farmacia"
-      ? "bg-emerald-100 text-emerald-700 border-emerald-300"
-      : "bg-blue-100 text-blue-700 border-blue-300";
+  // --- DIAGNÓSTICO ---
+  // Esto escribirá en la consola (F12) cada vez que se dibuje una tarjeta
+  // Si sale "undefined", el puente está roto. Si sale false, está funcionando.
+  // console.log(`Producto: ${offer.name} | Logueado:`, isAuthenticated);
 
   return (
     <article
-      onClick={goToDetail}
-      className="
-        bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-200 
-        hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer
-        flex flex-col animate-fadeIn
-      "
+      onClick={() => navigate(`/producto/${offer.id}`)}
+      className="bg-white rounded-xl shadow-md border border-slate-200 hover:shadow-xl transition-all duration-300 cursor-pointer p-4 flex flex-col items-center text-center h-full relative"
     >
-      {/* Imagen */}
-      <div className="relative w-full h-40 bg-slate-100 flex items-center justify-center">
+      {/* 1. IMAGEN */}
+      <div className="w-full h-40 flex items-center justify-center mb-4 bg-white rounded-lg relative">
         <img
-          src={
-            offer.image ||
-            "https://via.placeholder.com/300x200?text=Producto"
-          }
+          src={offer.image || "https://via.placeholder.com/150"}
           alt={offer.name}
-          className="w-full h-full object-cover"
+          className="max-h-full max-w-full object-contain mx-auto"
         />
-
-        {/* Badge de descuento */}
-        <span
-          className="
-            absolute top-3 right-3 bg-orange-500 text-white px-3 py-1
-            text-[11px] rounded-full font-semibold shadow-md
-            animate-pop
-          "
-        >
-          🔥 -{offer.discountPercentage}%
-        </span>
+        {offer.discountPercentage > 0 && (
+           <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] px-2 py-1 rounded-full font-bold shadow-sm">
+             -{offer.discountPercentage}%
+           </span>
+        )}
       </div>
 
-      {/* Contenido */}
-      <div className="p-4 flex flex-col gap-3">
-        {/* Empresa y Tipo */}
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-slate-700">
-            {offer.companyName}
-          </span>
-          <span
-            className={`px-2 py-1 rounded-full border text-[10px] ${tagColor}`}
-          >
-            ⭐ {offer.companyType}
-          </span>
-        </div>
+      {/* 2. DATOS */}
+      <div className="w-full flex-1 flex flex-col items-center">
+        <span className="text-[10px] uppercase text-slate-400 font-bold tracking-widest mb-1">
+          {offer.companyName}
+        </span>
 
-        {/* Nombre */}
-        <h3 className="text-sm font-bold text-slate-900 leading-tight">
+        <h3 className="text-sm font-bold text-slate-800 mb-2 leading-tight w-full line-clamp-2 min-h-[40px]">
           {offer.name}
         </h3>
 
-        {/* Categoria */}
-        <p className="text-[11px] text-slate-500">{offer.category}</p>
-
-        {/* Precio */}
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-xl font-bold text-emerald-600 flex items-center gap-1">
-              ${offer.price.toLocaleString("es-CL")}
-              <span className="text-lg animate-bounce-slow">🛒</span>
+        <div className="mb-4 w-full">
+          {offer.originalPrice > offer.price && (
+            <p className="text-xs text-slate-400 line-through m-0">
+              ${Number(offer.originalPrice).toLocaleString("es-CL")}
             </p>
-            <p className="text-[11px] text-slate-400 line-through">
-              ${offer.originalPrice.toLocaleString("es-CL")}
-            </p>
-          </div>
+          )}
+          <p className="text-xl font-extrabold text-emerald-600 m-0">
+            ${Number(offer.price).toLocaleString("es-CL")}
+          </p>
         </div>
 
-        {/* Línea separadora */}
-        <div className="w-full h-[1px] bg-slate-200"></div>
+        <div className="text-[11px] text-slate-500 mb-4 flex items-center justify-center gap-1">
+          <span>📍</span> {offer.commune}
+        </div>
 
-        {/* Información detalle */}
-        <div className="space-y-1 text-xs text-slate-600">
-          <p>
-            <span className="font-medium">Comuna:</span> {offer.commune}
-          </p>
-          <p>
-            <span className="font-medium">Stock:</span>{" "}
-            <span
-              className={`${
-                offer.stock === "Stock limitado"
-                  ? "text-rose-600 font-semibold"
-                  : ""
-              }`}
+        {/* 3. BOTONES - LA PRUEBA FINAL */}
+        <div className="w-full flex gap-2 mt-auto" onClick={(e) => e.stopPropagation()}>
+
+            {/* Si isAuthenticated es TRUE, mostramos el botón. Si es FALSE, SE OCULTA. */}
+            {isAuthenticated === true && (
+                <button
+                    onClick={onToggleFavorite}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold border flex items-center justify-center gap-1 transition-colors ${isFavorite ? "bg-rose-50 text-rose-500 border-rose-200" : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"}`}
+                >
+                    {/* CAMBIO VISUAL: Si ves estos iconos, el código se actualizó */}
+                    {isFavorite ? "❤️" : "🤍"}
+                </button>
+            )}
+
+            <a
+                href={offer.url}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                // Si no hay botón de favorito, este botón se estira (w-full)
+                className={`
+                   ${isAuthenticated ? "flex-[2]" : "w-full"}
+                   py-2 rounded-lg bg-orange-500 text-white text-xs font-bold flex items-center justify-center shadow-sm hover:bg-orange-600 transition-colors
+                `}
             >
-              {offer.stock || "No informado"}
-            </span>
-          </p>
-          <p className="text-[10px] text-slate-400">
-            Actualizado: {offer.lastUpdate}
-          </p>
-        </div>
-
-        {/* Botones → evitar navegación */}
-        <div
-          className="flex gap-2 mt-1"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* ⭐ Favorito (solo si está autenticado) */}
-          <button
-            onClick={() => {
-              if (!isAuthenticated) {
-                alert("Debes iniciar sesión para agregar favoritos.");
-                return;
-              }
-              onToggleFavorite();
-            }}
-            className={`
-              btn
-              flex-1 px-3 py-1.5 rounded-full text-[11px] border 
-              transition-all duration-300 flex items-center justify-center gap-1
-              ${
-                isFavorite
-                  ? "bg-rose-100 text-rose-700 border-rose-300 hover:bg-rose-200 animate-heartbeat"
-                  : "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200"
-              }
-            `}
-          >
-            ⭐ {isFavorite ? "Quitar" : "Favorito"}
-          </button>
-
-          {/* Ir a tienda */}
-          <a
-            href={offer.url}
-            target="_blank"
-            rel="noreferrer"
-            className="
-              btn btn-strong-hover
-              flex-1 text-center px-3 py-1.5 rounded-full
-              bg-orange-500 text-white text-[11px]
-              hover:bg-orange-600 hover:-translate-y-1
-              transition-all duration-300 shadow-sm flex items-center justify-center gap-1
-            "
-          >
-            Ir a tienda 🚀
-          </a>
+                Ver oferta
+            </a>
         </div>
       </div>
     </article>
