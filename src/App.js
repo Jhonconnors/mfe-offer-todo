@@ -44,13 +44,12 @@ export default function App() {
       window.removeEventListener("storage", handleStorage);
     };
   }, []);
-
   return (
     <>
       {/* Navbar recibe onLoginClick e isAuthenticated */}
       <Navbar onLoginClick={openLogin} isAuthenticated={!!token} />
 
-      {/* Modal de login (solo si showLogin === true) */}
+      {/* Modal de login */}
       {showLogin && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 relative">
@@ -61,15 +60,13 @@ export default function App() {
             >
               ×
             </button>
-
-            {/* EncryptedLogin ya guarda token y emite eventos */}
             <EncryptedLogin />
           </div>
         </div>
       )}
 
-      {/* Página de ofertas siempre visible */}
-      <OffersHome />
+      {/* CAMBIO AQUÍ: Pasamos la propiedad isAuthenticated a OffersHome */}
+      <OffersHome isAuthenticated={!!token} />
     </>
   );
 }
