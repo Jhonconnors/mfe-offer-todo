@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import FiltersBar from "../components/common/FiltersBar";
 import CookiesBanner from "../components/common/CookiesBanner";
 import GeoBanner from "../components/common/GeoBanner";
+import { getOrRefreshJwt } from "../utils/authClient";
 
 import "../styles/offersHome.css";
 import "../styles/filtersBar.css";
@@ -162,7 +163,12 @@ const OffersHome = ({ isAuthenticated }) => {
       : `${BFF_BASE_URL}/v1/supermarkets/product?q=${term}&comuna=${selectedCommune}`;
 
     try {
-      const response = await fetch(url);
+      const token = await getOrRefreshJwt(cookiesChoice, BFF_BASE_URL);
+      const response = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
       if (!response.ok) throw new Error("Error en la respuesta del servidor");
       const data = await response.json();
       if (data.items && Array.isArray(data.items)) {

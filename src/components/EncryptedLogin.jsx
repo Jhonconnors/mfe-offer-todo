@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PUBLIC_KEY_PEM from "../publicKey";
+import { getOrRefreshJwt } from "../utils/authClient";
 
 // --- Helpers para RSA / Base64
 function pemToArrayBuffer(pem) {
@@ -99,12 +100,17 @@ export default function EncryptedLogin() {
 
       const body = JSON.stringify({ username: encUser, password: encPass });
 
-      setStatus("Enviando al servidor...");
+      const cookiesChoice = localStorage.getItem("cookiesChoice") || null;
 
+      // Construir headers, incluir Authorization solo si tenemos clientJwt
+      let clientJwt = await getOrRefreshJwt(cookiesChoice, BFF_BASE_URL);
+      const headers = { "Content-Type": "application/json" };
+      if (clientJwt) headers["Authorization"] = `Bearer ${clientJwt}`; 
       const url = `${BFF_BASE_URL.replace(/\/$/, "")}/auth/login`;
+      setStatus("Enviando al servidor...");
       const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body,
       });
 
